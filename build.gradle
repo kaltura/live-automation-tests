@@ -1,0 +1,115 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+//sourceSets {
+//    integrationTest {
+//        java {
+//            srcDir 'src/java'
+//        }
+//        resources {
+//            srcDir 'src/resources'
+//        }
+//        compileClasspath += sourceSets.main.runtimeClasspath
+//    }
+//}
+
+
+
+//sourceSets {
+//    integrationTest {
+//        java {
+//            srcDir 'src/integrationtest/java'
+//        }
+//        resources {
+//            srcDir 'src/integrationtest/resources'
+//        }
+//        compileClasspath += sourceSets.main.runtimeClasspath
+//    }
+//}
+//
+//task integrationTest(type: Test) {
+//    useTestNG()
+//    // listen to events in the test execution lifecycle
+//    beforeTest { descriptor ->
+//        logger.lifecycle("Running test: " + descriptor)
+//    }
+//
+//    // listen to standard out and standard error of the test JVM(s)
+//    onOutput { descriptor, event ->
+//        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+//    }
+//
+//    description = "Runs Integration Tests"
+//    testClassesDir = sourceSets.integrationTest.output.classesDir
+//    classpath += sourceSets.integrationTest.runtimeClasspath
+//}
+
+dependencies {
+//    testCompile 'junit:junit:4.11'
+    compile 'org.testng:testng:6.8.21'
+    compile 'com.google.zxing:core:3.1.0'
+    compile 'com.google.zxing:javase:3.2.0'
+    compile 'org.apache.commons:commons-io:1.3.2'
+    compile 'org.apache.httpcomponents:httpclient:4.3.6'
+    compile 'log4j:log4j:1.2.17'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.1'
+}
+
+compileJava {
+    //enable compilation in a separate daemon process
+    options.compilerArgs << "-Xlint:unchecked"
+}
+
+test {
+    // enable TestNG support (default is JUnit)
+    useTestNG()
+
+    // show standard out and standard error of the test JVM(s) on the console
+    testLogging.showStandardStreams = true
+
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+
+    // listen to standard out and standard error of the test JVM(s)
+    onOutput { descriptor, event ->
+        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+    }
+}
+
+
+
+task automationTest(type: Test) {
+
+    if (project.hasProperty('single')) {
+        println project.property("single")
+        filter {
+            //specific test class, wildcard for packages
+            includeTestsMatching "*${project.property('single')}*"
+        }
+    }
+
+    useTestNG {
+        useDefaultListeners = true
+    }
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+
+    // listen to standard out and standard error of the test JVM(s)
+    onOutput { descriptor, event ->
+        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+    }
+    description = "Runs Integration Tests"
+    testClassesDir = file("$buildDir/classes/main/tests")
+    classpath += sourceSets.main.runtimeClasspath
+}
+

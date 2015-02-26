@@ -1,0 +1,90 @@
+package actions.utils;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.concurrent.*;
+
+/**
+ * Created by asher.saban on 2/24/2015.
+ */
+public class ProcessHandler {
+
+    private static final ExecutorService threadPool = Executors.newCachedThreadPool();
+
+    private static <T> T timedCall(Callable<T> c, long timeout, TimeUnit timeUnit)
+            throws InterruptedException, ExecutionException, TimeoutException
+    {
+        FutureTask<T> task = new FutureTask<>(c);
+        threadPool.execute(task);   //TODO or submit?
+        T res = task.get(timeout, timeUnit);
+        return res;
+    }
+
+    public static ProcessBuilder createProcess(String command) {
+        String[] splitCommand = command.split(" ");
+        ProcessBuilder pb = new ProcessBuilder(splitCommand);
+        pb.redirectErrorStream(true);
+        return pb;
+    }
+
+    public static Process start(ProcessBuilder pb) throws IOException {
+        final Process p = pb.start();
+
+        //must continuously read input stream, otherwise the buffer will be full and the process will block.
+        threadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                String line;
+                try {
+//                    while ((line = bri.readLine()) != null) {
+                    while (bri.readLine() != null) {
+//                        System.out.println(line);   //todo
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    bri.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return p;
+    }
+
+    public static int waitFor(final Process process, long timeout, TimeUnit timeUnit) {
+        int code = -1;
+        try {
+            code = timedCall(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    return process.waitFor();
+                }
+            }, timeout, timeUnit);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            System.out.println("Process failed to finish after " + timeout + " seconds");
+            process.destroy();
+        }
+        return code;
+    }
+
+    public static void destroy(Process process) {
+        process.destroy();
+    }
+
+    public static void shutdown() {
+        threadPool.shutdown();
+        try {
+            threadPool.awaitTermination(10000, TimeUnit.NANOSECONDS);   //TODO magic number
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}

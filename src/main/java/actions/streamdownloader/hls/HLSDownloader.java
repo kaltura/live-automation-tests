@@ -1,0 +1,171 @@
+package actions.streamdownloader.hls;
+
+import actions.streamdownloader.StreamDownloader;
+import actions.utils.HttpUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+
+/**
+ * Created by asher.saban on 2/17/2015.
+ */
+public class HLSDownloader implements StreamDownloader {
+
+    private static final Logger log = Logger.getLogger(HLSDownloader.class);
+    private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
+
+    @Override
+    public void shutdownDownloader() {
+        //order each downloader to shut down
+        for (AbstractMap.SimpleEntry<HLSDownloaderWorker, Thread> e : threadsList) {
+            e.getKey().stopDownload();
+        }
+
+        //wait for all threads to finish
+        for (AbstractMap.SimpleEntry<HLSDownloaderWorker, Thread> e : threadsList) {
+            Thread t = e.getValue();
+            log.debug("waiting for thread: " + t.getId());
+            try {
+                t.join();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();   //TODO, while loop?
+            }
+        }
+    }
+
+    private Set<String> getStreamsListsFromMasterPlaylist(String masterPlaylist) {
+        String[] lines = masterPlaylist.split("\n");
+        Set<String> streamsSet = new HashSet<>();
+
+        for (int i=0; i<lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.startsWith("#EXT-X-STREAM-INF:")) {
+//                System.out.println(line);
+                int j = i + 1;
+                String tempLine = lines[j].trim();
+                while (j < lines.length && (tempLine.startsWith("#") || tempLine.equals(""))) {
+                    j++;
+                    tempLine = lines[j].trim();
+                }
+                i=j;    //TODO index out of bounds in case there is nothing after #EXT-X-STREAM-INF:
+
+                if (streamsSet.contains(tempLine)) {
+                    continue;
+                }
+                log.info("Adding stream: " + tempLine);
+                streamsSet.add(tempLine);
+            }
+        }
+        return streamsSet;
+    }
+
+//    public void downloadHLSFiles(String masterPlaylistUrl, String filesDestination) throws Exception {
+//
+//        //extract base url:
+//        String baseUrl = masterPlaylistUrl.substring(0, masterPlaylistUrl.lastIndexOf("/"));
+//
+//        //get playlist data:
+//        CloseableHttpClient client = HttpUtils.getHttpClient();
+//        String masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl);
+//        client.close();
+//
+//        if (masterPlaylistData == null) {
+//            throw new Exception("Manifest is null");
+//        }
+//
+//        log.debug("Master playlist");
+//        log.debug(masterPlaylistData);
+//
+//        //save playlist to disk
+//        String playlistDestination = filesDestination + "/playlist.m3u8";
+//        FileUtils.writeStringToFile(new File(playlistDestination), masterPlaylistData);
+//        log.info("wrote master playlist to: " + playlistDestination);
+//
+//        //get streams urls:
+//        Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
+//        int numStreamFound = streamsSet.size();
+//        log.info("Got total of " + numStreamFound + " streams from master playlist");
+//        threadsList = new ArrayList<>(numStreamFound);
+//
+//        //download streams:
+//        int counter = 0;
+//        for (String stream : streamsSet) {
+//
+//            String streamDestination = filesDestination + "/flavor_" + counter;
+//            //write stream name to file:
+//            FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
+//
+//            String playlistUrl;
+//            //if stream is not a valid URL, concat it to the base URL
+//            try {
+//                playlistUrl = new URL(stream).toString();
+//            } catch (MalformedURLException e) {
+//                playlistUrl = baseUrl + "/" + stream;
+//            }
+//
+//            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination);
+//            Thread t = new Thread(worker);
+//            threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
+//            t.start();
+//            counter++;
+//        }
+//    }
+
+    @Override
+    public void downloadFiles(String masterPlaylistUrl, String filesDestination) throws Exception {
+        //extract base url:
+        String baseUrl = masterPlaylistUrl.substring(0, masterPlaylistUrl.lastIndexOf("/"));
+
+        //get playlist data:
+        CloseableHttpClient client = HttpUtils.getHttpClient();
+        String masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl);
+        client.close();
+
+        if (masterPlaylistData == null) {
+            throw new Exception("Manifest is null");
+        }
+
+        log.debug("Master playlist");
+        log.debug(masterPlaylistData);
+
+        //save playlist to disk
+        String playlistDestination = filesDestination + "/playlist.m3u8";
+        FileUtils.writeStringToFile(new File(playlistDestination), masterPlaylistData);
+        log.info("wrote master playlist to: " + playlistDestination);
+
+        //get streams urls:
+        Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
+        int numStreamFound = streamsSet.size();
+        log.info("Got total of " + numStreamFound + " streams from master playlist");
+        threadsList = new ArrayList<>(numStreamFound);
+
+        //download streams:
+        int counter = 0;
+        for (String stream : streamsSet) {
+
+            String streamDestination = filesDestination + "/flavor_" + counter;
+            //write stream name to file:
+            FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
+
+            String playlistUrl;
+            //if stream is not a valid URL, concat it to the base URL
+            try {
+                playlistUrl = new URL(stream).toString();
+            } catch (MalformedURLException e) {
+                playlistUrl = baseUrl + "/" + stream;
+            }
+
+            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination);
+            Thread t = new Thread(worker);
+            threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
+            t.start();
+            counter++;
+        }
+
+    }
+}
