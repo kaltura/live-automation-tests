@@ -2,6 +2,8 @@ package actions.streamdownloader.hls;
 
 import actions.utils.HttpUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -10,11 +12,12 @@ import java.util.regex.Pattern;
 /**
  * Created by asher.saban on 2/17/2015.
  */
-public class HLSDownloaderWorker implements Runnable {
+class HLSDownloaderWorker implements Runnable {
 
+    private static final Logger log = Logger.getLogger(HLSDownloaderWorker.class);
     private static final int DEFAULT_TS_DURATION = 10;
-    private String url;
-    private String destinationPath;
+    private final String url;
+    private final String destinationPath;
     private int lastTsNumber;
     private volatile boolean stopDownloading;
 
@@ -41,20 +44,20 @@ public class HLSDownloaderWorker implements Runnable {
         while (true) {
 
             if (stopDownloading) {
-                System.out.println("Shutting down downloader...");
+                log.info("Shutting down downloader...");
                 return;
             }
 
             counter++;
-            System.out.println("iteration: " + counter);
+            log.debug("iteration: " + counter);
 
             //download m3u8:
             CloseableHttpClient httpClient = HttpUtils.getHttpClient();
-            String content = null;
+            String content;
             try {
                 content = HttpUtils.doGetRequest(httpClient, url);
             } catch (IOException e) {
-                System.out.println("Get request failed.");
+                log.error("Get request failed.");
                 e.printStackTrace();
                 continue; //TODO
             }
@@ -69,12 +72,12 @@ public class HLSDownloaderWorker implements Runnable {
             for (int i = 0; i < numLines; i++) {
                 String line = lines[i];
                 if (line.startsWith("#EXT-X-TARGETDURATION:")) {
-                    System.out.println(line);
+                    log.debug(line);
                     tsDuration = parseStringToInt(line.substring("#EXT-X-TARGETDURATION:".length()).trim());
                 }
                 //a .ts file
                 else if (line.startsWith("#EXTINF:")) {
-                    System.out.println(line);
+                    log.debug(line);
                     //extract ts file:
                     int j = i + 1;
                     while (j < lines.length && (lines[j].startsWith("#") || lines[j].equals("")) && !lines[j].trim().endsWith(".ts")) {
@@ -82,13 +85,10 @@ public class HLSDownloaderWorker implements Runnable {
                     }
 
                     String tsName = lines[j];
-                    System.out.println("Found .ts file: " + tsName);
+                    log.debug("Found .ts file: " + tsName);
 
                     //parse ts address to relative address and file name:
                     File ts = new File(tsName);
-                    String relativePath = ts.getParent();
-                    //in case relative path is null
-                    relativePath = (relativePath == null) ? "" : relativePath;
                     String fileName = ts.getName();
 
                     //get the ts number:
@@ -116,14 +116,13 @@ public class HLSDownloaderWorker implements Runnable {
                 }
             }
 
-            //sleep for at least the maxminal duration of the .ts that is specified in the m3u8 file - #EXT-X-TARGETDURATION
+            //sleep for at least the maximal duration of the .ts that is specified in the m3u8 file - #EXT-X-TARGETDURATION
             long endDownloadTime = System.currentTimeMillis();
-            System.out.println();
-            System.out.println("download took: " + (endDownloadTime - downloadTime) + " ms. max duration: " + tsDuration * 1000);
-            System.out.println();
+            log.info("download took: " + (endDownloadTime - downloadTime) + " ms. max duration: " + tsDuration * 1000);
+
             if ((endDownloadTime - downloadTime) < (tsDuration * 1000)) {
                 try {
-                    System.out.println("sleeping for: " + ((tsDuration * 1000) - (endDownloadTime - downloadTime)));
+                    log.info("sleeping for: " + ((tsDuration * 1000) - (endDownloadTime - downloadTime)));
                     Thread.sleep((tsDuration * 1000) - (endDownloadTime - downloadTime));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -145,8 +144,8 @@ public class HLSDownloaderWorker implements Runnable {
         try {
             return Integer.valueOf(str);
         } catch (NumberFormatException e) {
-            System.out.println("#EXT-X-TARGETDURATION was not found in m3u8 file.");
-            return DEFAULT_TS_DURATION;
+            log.error("#EXT-X-TARGETDURATION was not found in m3u8 file.");
+            return DEFAULT_TS_DURATION; //TODO throw exception?
         }
     }
 }

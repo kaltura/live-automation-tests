@@ -30,7 +30,7 @@ public class HttpUtils {
     }
 
     public static String doGetRequest(CloseableHttpClient httpClient, String url) throws IOException {
-        HttpGet httpGet = new HttpGet(url.toString());
+        HttpGet httpGet = new HttpGet(url);
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
@@ -60,12 +60,7 @@ public class HttpUtils {
         destinationPath = destinationPath.trim();
 
         File f = new File(destinationPath);
-        URL urlObj = null;
-        try {
-            urlObj = new URL(url);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        URL urlObj = new URL(url);
 
         log.info("Downloading file: " + url);
         log.info("Destination: " + destinationPath);

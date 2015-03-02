@@ -1,7 +1,5 @@
 package actions.streamdownloader;
 
-import java.io.IOException;
-
 /**
  * Created by asher.saban on 2/25/2015.
  */

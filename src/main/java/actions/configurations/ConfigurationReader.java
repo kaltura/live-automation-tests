@@ -20,7 +20,6 @@ public class ConfigurationReader {
     public static TestConfig getTestConfigurations(String pathToJson) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        TestConfig config = null;
         return mapper.readValue(new File(pathToJson), TestConfig.class);
     }
 }

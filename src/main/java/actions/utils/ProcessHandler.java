@@ -1,5 +1,7 @@
 package actions.utils;
 
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,17 +13,18 @@ import java.util.concurrent.*;
 public class ProcessHandler {
 
     private static final ExecutorService threadPool = Executors.newCachedThreadPool();
+    private static final Logger log = Logger.getLogger(ProcessHandler.class);
 
     private static <T> T timedCall(Callable<T> c, long timeout, TimeUnit timeUnit)
             throws InterruptedException, ExecutionException, TimeoutException
     {
         FutureTask<T> task = new FutureTask<>(c);
         threadPool.execute(task);   //TODO or submit?
-        T res = task.get(timeout, timeUnit);
-        return res;
+        return task.get(timeout, timeUnit);
     }
 
     public static ProcessBuilder createProcess(String command) {
+        log.info("Create process with command: " + command);
         String[] splitCommand = command.split(" ");
         ProcessBuilder pb = new ProcessBuilder(splitCommand);
         pb.redirectErrorStream(true);
@@ -36,7 +39,7 @@ public class ProcessHandler {
             @Override
             public void run() {
                 BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                String line;
+//                String line;
                 try {
 //                    while ((line = bri.readLine()) != null) {
                     while (bri.readLine() != null) {
@@ -64,12 +67,10 @@ public class ProcessHandler {
                     return process.waitFor();
                 }
             }, timeout, timeUnit);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         } catch (TimeoutException e) {
-            System.out.println("Process failed to finish after " + timeout + " seconds");
+            log.error("Process failed to finish after " + timeout + " seconds");
             process.destroy();
         }
         return code;

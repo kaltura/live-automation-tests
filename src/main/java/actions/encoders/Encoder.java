@@ -1,0 +1,53 @@
+package actions.encoders;
+
+import actions.utils.ProcessHandler;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * Created by asher.saban on 2/26/2015.
+ */
+public class Encoder {
+
+    private static final Logger log = Logger.getLogger(Encoder.class);
+
+    private String name;
+    private String pathToEncoder;
+    private String args;
+    private Process process;
+
+    private static final Set<String> encodersMap;
+
+    //initialize encoders map
+    static {
+        encodersMap = new HashSet<>();
+        encodersMap.add("FMLE");
+        encodersMap.add("FFMPEG");
+    }
+
+    public Encoder(String name, String pathToExecutable, String args) {
+        //validate supported encoder
+        if (!encodersMap.contains(name.toUpperCase())) {
+            throw new IllegalArgumentException("Encoder with name " + name + " is not supported");
+        }
+        this.name = name;
+        this.pathToEncoder = pathToExecutable;
+        this.args = args;
+    }
+
+    public void startStream() throws IOException {
+        ProcessBuilder pb = ProcessHandler.createProcess(pathToEncoder + " " + args);
+        process = ProcessHandler.start(pb);
+    }
+
+    public void stopStreaming() {
+        log.info("stopping streaming");
+        ProcessHandler.destroy(process);
+    }
+
+    public String getName() {
+        return name;
+    }
+}

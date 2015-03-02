@@ -14,21 +14,23 @@ public class TestConfig {
     @JsonProperty("test-name")
     private String testName;
 
+    @JsonProperty("stream-type")
+    private String streamType;
+
     @JsonProperty("encoder")
-    private String encoder;
+    private EncoderConfig encoder;
 
     @JsonProperty("test-duration")
     private int testDuration;
 
-    @JsonProperty("master-m3u8-url")
-    private String masterM3u8Url;
+    @JsonProperty("path-to-ffmpeg")
+    private String pathToFfmpeg;
 
     @JsonProperty("destination-folder")
     private String destinationFolder;
 
     @JsonProperty("delete-files")
     private String deleteFiles;
-
 
     @JsonProperty("service-url")
     private String ServiceUrl;
@@ -39,7 +41,7 @@ public class TestConfig {
     @JsonProperty("entry-id")
     private String entryId;
 
-    private Map<String , Object> otherProperties = new HashMap<>();
+    private final Map<String , Object> otherProperties = new HashMap<>();
 
     @JsonAnySetter
     private void set(String name, Object value) {
@@ -50,7 +52,7 @@ public class TestConfig {
         return testName;
     }
 
-    public String getEncoder() {
+    public EncoderConfig getEncoder() {
         return encoder;
     }
 
@@ -58,12 +60,16 @@ public class TestConfig {
         return testDuration;
     }
 
-    public String getMasterM3u8Url() {
-        return masterM3u8Url;
+    public String getPathToFfmpeg() {
+        return pathToFfmpeg;
     }
 
     public String getDestinationFolder() {
         return destinationFolder;
+    }
+
+    public String getStreamType() {
+        return streamType;
     }
 
     public String getDeleteFiles() {

@@ -7,6 +7,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -17,7 +18,9 @@ import java.util.*;
 public class HLSDownloader implements StreamDownloader {
 
     private static final Logger log = Logger.getLogger(HLSDownloader.class);
+    private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
     private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
+
 
     @Override
     public void shutdownDownloader() {
@@ -122,13 +125,8 @@ public class HLSDownloader implements StreamDownloader {
         String baseUrl = masterPlaylistUrl.substring(0, masterPlaylistUrl.lastIndexOf("/"));
 
         //get playlist data:
-        CloseableHttpClient client = HttpUtils.getHttpClient();
-        String masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl);
-        client.close();
 
-        if (masterPlaylistData == null) {
-            throw new Exception("Manifest is null");
-        }
+        String masterPlaylistData = getPlaylistData(masterPlaylistUrl);
 
         log.debug("Master playlist");
         log.debug(masterPlaylistData);
@@ -136,7 +134,7 @@ public class HLSDownloader implements StreamDownloader {
         //save playlist to disk
         String playlistDestination = filesDestination + "/playlist.m3u8";
         FileUtils.writeStringToFile(new File(playlistDestination), masterPlaylistData);
-        log.info("wrote master playlist to: " + playlistDestination);
+        log.info("Wrote master playlist to: " + playlistDestination);
 
         //get streams urls:
         Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
@@ -167,5 +165,43 @@ public class HLSDownloader implements StreamDownloader {
             counter++;
         }
 
+    }
+
+    private String getPlaylistData(String masterPlaylistUrl) throws Exception {
+
+        log.info("Downloading playlist from URL: " + masterPlaylistUrl + " . timeout in seconds: " + MANIFEST_DOWNLOAD_TIMEOUT_SEC);
+
+        long timeoutInMillis = MANIFEST_DOWNLOAD_TIMEOUT_SEC * 1000;
+        long startTime = System.currentTimeMillis();
+        long currentTime = startTime;
+
+        CloseableHttpClient client = null;
+        try {
+            client = HttpUtils.getHttpClient();
+            String masterPlaylistData;
+            while ((currentTime - startTime) <= timeoutInMillis) {
+                try {
+                    masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl);
+                    if (masterPlaylistData != null) {
+                        log.info("Downloaded playlist manifest after " + (currentTime - startTime) + " milliseconds");
+                        return masterPlaylistData;
+                    }
+
+                    //wait 5 seconds before next download attempt
+                    log.info("Failed to download playlist. waiting additional 5 seconds");  //TODO magic numbers
+                    currentTime = System.currentTimeMillis();
+                    Thread.sleep(5000);
+
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            throw new Exception("Failed to download playlist manifest after " + (currentTime - startTime) + " milliseconds");
+
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
     }
 }

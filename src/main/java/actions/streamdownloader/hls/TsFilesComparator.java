@@ -1,6 +1,6 @@
 package actions.streamdownloader.hls;
 
-import actions.utils.FFMpegEncoder;
+import actions.encoders.ImageUtils;
 import actions.utils.MultiBitrateResults;
 import actions.utils.QRCodeReader;
 import com.google.zxing.NotFoundException;
@@ -35,17 +35,15 @@ public class TsFilesComparator {
         return 0;
     }
 
-    private static long getQRCodeFromFile(File tsFile, String jpegFile) throws IOException {
+    private static long getQRCodeFromFile(File tsFile, String jpegFile) throws Exception {
         //save first frame to file:
-        FFMpegEncoder.saveFirstFrame(tsFile, new File(jpegFile));   //TODO, be consistent with File objects
+        ImageUtils.saveFirstFrame(tsFile, new File(jpegFile));   //TODO, be consistent with File objects
 
         //take QR code:
         try {
             String text = QRCodeReader.readQRCode(new File(jpegFile));
             return convertToMs(text);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NotFoundException e) {
+        } catch (IOException | NotFoundException e) {
             e.printStackTrace();
         }
         return 0;
@@ -54,7 +52,6 @@ public class TsFilesComparator {
     private static Integer extractTsNumber(String tsName) {
         Pattern pattern = Pattern.compile("\\D(\\d+)\\.ts");
         Matcher matcher = pattern.matcher(tsName);
-        Integer num1 = -1;
         if (matcher.find()) {
             return Integer.valueOf(matcher.group(1));
         }
@@ -104,14 +101,13 @@ public class TsFilesComparator {
         int prevTsNumber = extractTsNumber(prevTsFile.getName());
         MultiBitrateResults r = new MultiBitrateResults(prevTsNumber);
 
-        for (int i = 0; i < sortedFiles.size(); i++) {
-            File currentTsFile = sortedFiles.get(i);
+        for (File currentTsFile : sortedFiles) {
             int currentTsNumber = extractTsNumber(currentTsFile.getName());
 
             //finished with previous ts file, save it to map and start a new result
             if (currentTsNumber != prevTsNumber) {
 
-                if (!analyzeResult(r)){
+                if (!analyzeResult(r)) {
                     success = false;
                 }
 
@@ -122,11 +118,13 @@ public class TsFilesComparator {
             String jpegName = currentTsFile.getAbsolutePath() + ".jpeg";
 
             //delete file if exists
-            File jpegFile = new File(jpegName);
+//            File jpegFile = new File(jpegName);
 //            /*boolean isDeleted = */jpegFile.delete();  //TODO, be consistent and work only with File obj. what if false? DEADLOCK. solved with -y in ffmpeg
             try {
                 r.updateValues(getQRCodeFromFile(currentTsFile, jpegName));
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

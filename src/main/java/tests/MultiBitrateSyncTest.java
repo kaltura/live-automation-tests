@@ -1,9 +1,12 @@
 package tests;
 
 import actions.configurations.ConfigurationReader;
+import actions.configurations.EncoderConfig;
 import actions.configurations.TestConfig;
+import actions.encoders.Encoder;
+import actions.encoders.ImageUtils;
 import actions.streamdownloader.StreamDownloader;
-import actions.streamdownloader.hls.HLSDownloader;
+import actions.streamdownloader.StreamDownloaderFactory;
 import actions.streamdownloader.hls.TsFilesComparator;
 import actions.utils.ManifestUrlBuilder;
 import actions.utils.MultiBitrateResults;
@@ -30,8 +33,9 @@ import java.util.Map;
 public class MultiBitrateSyncTest {
 
     private TestConfig config;
-    private Process p;
     private String dest;
+    private Encoder encoder;
+    private StreamDownloader downloader;
 
     private static String generateRandomSuffix() {
         return new SimpleDateFormat("yyMMdd_HHmmss").format(Calendar.getInstance().getTime());
@@ -50,14 +54,23 @@ public class MultiBitrateSyncTest {
         try {
             Thread.sleep(seconds * 1000);
         } catch (InterruptedException e) {
-            Reporter.log("Sleep interrupted.");
             e.printStackTrace();
         }
     }
 
     @BeforeClass
-    public void initializeConfigurations() throws Exception {
-        config = getTestConfiguration("test-conf.json");
+    public void initializeTest() throws Exception {
+        config = getTestConfiguration("test-conf.json");    //TODO
+
+        //initialize encoder
+        EncoderConfig encoderConfig = config.getEncoder();
+        encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),encoderConfig.getArgs());
+
+        //initialize image utils
+        ImageUtils.initializeImageUtils(config.getPathToFfmpeg());
+
+        //initialize stream downloader
+        downloader = StreamDownloaderFactory.getDownloader(config.getStreamType());
     }
 
     private void comment(String msg) {
@@ -67,12 +80,11 @@ public class MultiBitrateSyncTest {
     @Test
     public void streamVideoAndSleep() throws IOException {
         comment("About to stream video");
-        ProcessBuilder pb = ProcessHandler.createProcess((String) config.getOtherProperties().get("ffmpegStreamCommand"));
-        p = ProcessHandler.start(pb);
+        encoder.startStream();
+        comment("Sleeping");
+        sleep(90);
+        comment("Done sleeping");
 
-        comment("Sleeping..");
-        sleep(60);
-        comment("Done sleeping..");
     }
 
     @Test(dependsOnMethods = "streamVideoAndSleep")
@@ -86,19 +98,17 @@ public class MultiBitrateSyncTest {
         comment("Destination folder:" + dest);
         comment("Test duration:" + duration);
 
-        StreamDownloader hlsDownloader = new HLSDownloader();
         try {
-            hlsDownloader.downloadFiles(uri.toString(), dest);
+            downloader.downloadFiles(uri.toString(), dest);
             Thread.sleep(duration * 1000);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             comment("Shutting down downloader");
-            hlsDownloader.shutdownDownloader();
+            downloader.shutdownDownloader();
 
             comment("Stopping streaming");
-            ProcessHandler.destroy(p);
-            comment("Closing ProcessHandler");
+            encoder.stopStreaming();
         }
     }
 
