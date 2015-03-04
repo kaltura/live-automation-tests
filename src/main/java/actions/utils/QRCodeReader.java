@@ -6,9 +6,7 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,12 +19,19 @@ public class QRCodeReader {
     }
 
     public static String readQRCode(File filePath, Map<DecodeHintType, ?> hintMap) throws IOException, NotFoundException {
-
-        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
-                new BufferedImageLuminanceSource(
-                        ImageIO.read(new FileInputStream(filePath)))));
-
-        Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
-        return qrCodeResult.getText();
+        InputStream is = null;
+        try {
+            is = new FileInputStream(filePath);
+            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
+                    new BufferedImageLuminanceSource(
+                            ImageIO.read(is))));
+            Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
+            return qrCodeResult.getText();
+        } finally {
+            //close the stream, otherwise it will lock all the jpeg files
+            if (is != null) {
+                is.close();
+            }
+        }
     }
 }

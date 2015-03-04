@@ -24,7 +24,7 @@ public class ProcessHandler {
     }
 
     public static ProcessBuilder createProcess(String command) {
-        log.info("Create process with command: " + command);
+        log.debug("Create process with command: " + command);
         String[] splitCommand = command.split(" ");
         ProcessBuilder pb = new ProcessBuilder(splitCommand);
         pb.redirectErrorStream(true);

@@ -10,8 +10,8 @@ import actions.streamdownloader.StreamDownloaderFactory;
 import actions.streamdownloader.hls.TsFilesComparator;
 import actions.utils.GlobalContext;
 import actions.utils.ManifestUrlBuilder;
-import actions.utils.MultiBitrateResults;
 import actions.utils.ProcessHandler;
+import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
@@ -25,8 +25,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
 * Created by asher.saban on 2/25/2015.
@@ -117,6 +115,16 @@ public class MultiBitrateSyncTest {
     public void compareFiles() {
         comment("Comparing files");
         Assert.assertEquals(true,TsFilesComparator.compareFiles(new File(dest), (Integer) GlobalContext.getValue("NUM_STREAMS")));
+
+        //test passed, delete downloads
+        try {
+            if (config.getDeleteFiles()) {
+                FileUtils.forceDelete(new File(dest));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @AfterClass

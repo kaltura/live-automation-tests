@@ -1,6 +1,7 @@
 package actions.streamdownloader.hls;
 
 import actions.utils.HttpUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
@@ -56,6 +57,9 @@ class HLSDownloaderWorker implements Runnable {
             String content;
             try {
                 content = HttpUtils.doGetRequest(httpClient, url);
+
+                //write to file
+                FileUtils.writeStringToFile(new File(dest + "/iter_" + counter),content);
             } catch (IOException e) {
                 log.error("Get request failed.");
                 e.printStackTrace();

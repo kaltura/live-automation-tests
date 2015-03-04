@@ -30,7 +30,7 @@ public class TestConfig {
     private String destinationFolder;
 
     @JsonProperty("delete-files")
-    private String deleteFiles;
+    private boolean deleteFiles;
 
     @JsonProperty("service-url")
     private String ServiceUrl;
@@ -72,7 +72,7 @@ public class TestConfig {
         return streamType;
     }
 
-    public String getDeleteFiles() {
+    public boolean getDeleteFiles() {
         return deleteFiles;
     }
 

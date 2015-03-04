@@ -36,12 +36,14 @@ public class TsFilesComparator {
     }
 
     private static long getQRCodeFromFile(File tsFile, String jpegFile) throws Exception {
-        //save first frame to file:
-        ImageUtils.saveFirstFrame(tsFile, new File(jpegFile));   //TODO, be consistent with File objects
+        File f = new File(jpegFile);
+
+        //save first frame to file
+        ImageUtils.saveFirstFrame(tsFile, f);   //TODO, be consistent with File objects
 
         //take QR code:
         try {
-            String text = QRCodeReader.readQRCode(new File(jpegFile));
+            String text = QRCodeReader.readQRCode(f);
             return convertToMs(text);
         } catch (IOException | NotFoundException e) {
             e.printStackTrace();
