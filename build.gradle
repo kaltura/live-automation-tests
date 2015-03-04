@@ -5,53 +5,14 @@ version = '1.0'
 
 repositories {
     mavenCentral()
+    maven {
+        //TODO replace to master
+        url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
+    }
 }
 
-//sourceSets {
-//    integrationTest {
-//        java {
-//            srcDir 'src/java'
-//        }
-//        resources {
-//            srcDir 'src/resources'
-//        }
-//        compileClasspath += sourceSets.main.runtimeClasspath
-//    }
-//}
-
-
-
-//sourceSets {
-//    integrationTest {
-//        java {
-//            srcDir 'src/integrationtest/java'
-//        }
-//        resources {
-//            srcDir 'src/integrationtest/resources'
-//        }
-//        compileClasspath += sourceSets.main.runtimeClasspath
-//    }
-//}
-//
-//task integrationTest(type: Test) {
-//    useTestNG()
-//    // listen to events in the test execution lifecycle
-//    beforeTest { descriptor ->
-//        logger.lifecycle("Running test: " + descriptor)
-//    }
-//
-//    // listen to standard out and standard error of the test JVM(s)
-//    onOutput { descriptor, event ->
-//        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
-//    }
-//
-//    description = "Runs Integration Tests"
-//    testClassesDir = sourceSets.integrationTest.output.classesDir
-//    classpath += sourceSets.integrationTest.runtimeClasspath
-//}
-
 dependencies {
-//    testCompile 'junit:junit:4.11'
+    compile 'com.kaltura:KalturaJavaClientLib:1.0'
     compile 'org.testng:testng:6.8.21'
     compile 'com.google.zxing:core:3.1.0'
     compile 'com.google.zxing:javase:3.2.0'
@@ -113,5 +74,31 @@ task automationTest(type: Test, dependsOn: build) {
     description = "Runs Integration Tests"
     testClassesDir = file("$buildDir/classes/main/tests")
     classpath += sourceSets.main.runtimeClasspath
+}
+
+task generateConfFile {
+
+    doFirst {
+        //read conf template:
+//        println ClassLoader.getSystemResource("/test-conf.json.template")
+//        def template = new File(ClassLoader.getSystemResource("test-conf.json.template").file).getText('UTF-8');
+        //TODO solve resources
+        def template = new File("$projectDir/src/main/resources/test-conf.json.template").getText('UTF-8');
+
+        def envVars = ['service-url','partner-id', 'entry-id', 'args', 'test-duration', 'destination-folder']
+        envVars.each {v ->
+            def val = System.env[v]
+            if (val != null){
+                println "setting @$v@ to $val"
+                template.replaceAll("@$v@", val)
+            }
+            else {
+                println "Env var '$v' was not set"
+            }
+        }
+        //write if to file
+        def conf = new File("$projectDir/src/main/resources/test-conf.json")
+        conf.text = template
+    }
 }
 

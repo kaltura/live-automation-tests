@@ -1,0 +1,17 @@
+{
+  "test-name": "test-1",
+  "service-url": "@service-url@",
+  "partner-id": "@partner-id@",
+  "entry-id": "@entry-id@",
+  "stream-type": "hls",
+  "path-to-ffmpeg": "c:/ffmpeg/bin/ffmpeg.exe",
+  "encoder": {
+    "name": "ffmpeg",
+    "path-to-executable": "c:/ffmpeg/bin/ffmpeg.exe",
+    "args": "@args@"
+  },
+  "test-duration": @test-duration@,
+  "destination-folder": "@destination-folder",
+  "delete-files": true
+}
+

@@ -1,9 +1,0 @@
-{
-  "test-name": "test-name",
-  "service-url": "service-url",
-  "partner-id": "12345",
-  "entry-id": "entry-id",
-  "ffmpegStreamCommand": "c:/ffmpeg/bin/ffmpeg.exe ...",
-  "test-duration": 120,
-  "destination-folder": "c:/some_dir"
-}
