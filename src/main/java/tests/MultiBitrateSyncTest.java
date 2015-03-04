@@ -8,6 +8,7 @@ import actions.encoders.ImageUtils;
 import actions.streamdownloader.StreamDownloader;
 import actions.streamdownloader.StreamDownloaderFactory;
 import actions.streamdownloader.hls.TsFilesComparator;
+import actions.utils.GlobalContext;
 import actions.utils.ManifestUrlBuilder;
 import actions.utils.MultiBitrateResults;
 import actions.utils.ProcessHandler;
@@ -115,9 +116,7 @@ public class MultiBitrateSyncTest {
     @Test(dependsOnMethods = "downloadTsFiles")
     public void compareFiles() {
         comment("Comparing files");
-        Map<Integer, MultiBitrateResults> results = new HashMap<>();
-        //do something with results
-        Assert.assertEquals(true,TsFilesComparator.compareFiles(new File(dest), results));
+        Assert.assertEquals(true,TsFilesComparator.compareFiles(new File(dest), (Integer) GlobalContext.getValue("NUM_STREAMS")));
     }
 
     @AfterClass

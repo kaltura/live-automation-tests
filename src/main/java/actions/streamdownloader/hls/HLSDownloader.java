@@ -1,6 +1,7 @@
 package actions.streamdownloader.hls;
 
 import actions.streamdownloader.StreamDownloader;
+import actions.utils.GlobalContext;
 import actions.utils.HttpUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -139,6 +140,10 @@ public class HLSDownloader implements StreamDownloader {
         //get streams urls:
         Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
         int numStreamFound = streamsSet.size();
+
+        //TODO, put in constant. create global context tags in the future
+        GlobalContext.putValue("NUM_STREAMS", numStreamFound);
+
         log.info("Got total of " + numStreamFound + " streams from master playlist");
         threadsList = new ArrayList<>(numStreamFound);
 

@@ -58,22 +58,6 @@ public class TsFilesComparator {
         return null;
     }
 
-    private static boolean analyzeResult(MultiBitrateResults r) {
-        boolean success = true;
-        long diff = r.getMaxValue() - r.getMinValue();
-        log.info("ts with id: " + r.getTsNumber() + ", diff: " + diff + ", min: " + r.getMinValue() + ", max: " + r.getMaxValue() + " . num comparisons: " + r.getNumComparisons());
-
-        if (r.getNumComparisons() < 3) {
-            success = false;
-            log.error("missing ts files");
-        }
-        if (diff >= THRESHOLD_IN_MS) {
-            success = false;
-            log.error("Ts files are not in sync");
-        }
-        return success;
-    }
-
     private static List<File> getSortedFilesList(Collection<File> files) {
         List<File> newList = new ArrayList<>(files);
         Collections.sort(newList, new Comparator<File>() {
@@ -88,13 +72,9 @@ public class TsFilesComparator {
         return newList;
     }
 
-    public static boolean compareFiles(File folderPath, Map<Integer, MultiBitrateResults> results) {
+    private static List<MultiBitrateResults> buildTestResults(List<File> sortedFiles) {
 
-        boolean success = true;
-        Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
-        List<File> sortedFiles = getSortedFilesList(files);
-
-//        HashMap<Integer, MultiBitrateResults> results = new HashMap<>();
+        List<MultiBitrateResults> results = new ArrayList<>();
 
         //initialize first
         File prevTsFile = sortedFiles.get(0);  //TODO, index out of bounds
@@ -107,19 +87,14 @@ public class TsFilesComparator {
             //finished with previous ts file, save it to map and start a new result
             if (currentTsNumber != prevTsNumber) {
 
-                if (!analyzeResult(r)) {
-                    success = false;
-                }
-
-                results.put(prevTsNumber, r);
+                results.add(r);
                 r = new MultiBitrateResults(currentTsNumber);
                 prevTsNumber = currentTsNumber;
             }
             String jpegName = currentTsFile.getAbsolutePath() + ".jpeg";
 
             //delete file if exists
-//            File jpegFile = new File(jpegName);
-//            /*boolean isDeleted = */jpegFile.delete();  //TODO, be consistent and work only with File obj. what if false? DEADLOCK. solved with -y in ffmpeg
+//            File jpegFile = new File(jpegName); /*boolean isDeleted = */jpegFile.delete();  //TODO, be consistent and work only with File obj. what if false? DEADLOCK. solved with -y in ffmpeg
             try {
                 r.updateValues(getQRCodeFromFile(currentTsFile, jpegName));
             } catch (IOException e) {
@@ -130,9 +105,37 @@ public class TsFilesComparator {
         }
 
         //add the last ones
-        results.put(prevTsNumber, r);
-        if (!analyzeResult(r)){
-            success = false;
+        results.add(r);
+        return results;
+    }
+
+    public static boolean compareFiles(File folderPath, int numStreams) {
+        boolean success = true;
+        Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
+        List<File> sortedFiles = getSortedFilesList(files);
+        List<MultiBitrateResults> results = buildTestResults(sortedFiles);
+
+        //analyze results:
+        for (int i = 0; i < results.size(); i++) {
+            MultiBitrateResults r = results.get(i);
+            long diff = r.getMaxValue() - r.getMinValue();
+            log.info("ts with id: " + r.getTsNumber() + ", diff: " + diff + ", min: " + r.getMinValue() + ", max: " + r.getMaxValue() + " . num comparisons: " + r.getNumComparisons());
+
+            if (r.getNumComparisons() < numStreams) {
+                //ignore edges
+                String message = "missing ts files";
+                if (i < 2 || i >= results.size() - 2) {
+                    log.warn(message);
+                }
+                else {
+                    log.error(message);
+                    success = false;
+                }
+            }
+            if (diff > THRESHOLD_IN_MS) {
+                success = false;
+                log.error("Ts files are not in sync");
+            }
         }
         return success;
     }

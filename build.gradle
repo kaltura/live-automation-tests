@@ -86,7 +86,9 @@ test {
 
 
 
-task automationTest(type: Test) {
+task automationTest(type: Test, dependsOn: build) {
+
+    outputs.upToDateWhen { false }
 
     if (project.hasProperty('single')) {
         println project.property("single")
