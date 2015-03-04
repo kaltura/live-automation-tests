@@ -101,7 +101,7 @@ task generateConfFile {
         println "Generated Template:"
         println template
         def conf = new File("$projectDir/src/main/resources/test-conf.json")
-        conf.write = template
+        conf.write template
     }
 }
 
