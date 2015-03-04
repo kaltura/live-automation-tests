@@ -90,7 +90,7 @@ task generateConfFile {
             def val = System.env[v]
             if (val != null){
                 println "setting @$v@ to $val"
-                template.replaceAll("@$v@", val)
+                template = template.replaceAll("@$v@", val)
             }
             else {
                 println "Env var '$v' was not set"

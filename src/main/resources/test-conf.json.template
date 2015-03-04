@@ -11,7 +11,7 @@
     "args": "@args@"
   },
   "test-duration": @test-duration@,
-  "destination-folder": "@destination-folder",
+  "destination-folder": "@destination-folder@",
   "delete-files": true
 }
 
