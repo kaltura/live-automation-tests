@@ -12,6 +12,6 @@
   },
   "test-duration": @test-duration@,
   "destination-folder": "@destination-folder@",
-  "delete-files": true
+  "delete-files": @delete-files@
 }
 
