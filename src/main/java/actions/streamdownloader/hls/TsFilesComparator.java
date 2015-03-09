@@ -111,6 +111,7 @@ public class TsFilesComparator {
         return results;
     }
 
+    @SuppressWarnings("unchecked")
     public static boolean compareFiles(File folderPath, int numStreams) {
         boolean success = true;
         Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);

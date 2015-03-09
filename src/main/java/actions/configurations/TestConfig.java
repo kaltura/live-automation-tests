@@ -38,8 +38,8 @@ public class TestConfig {
     @JsonProperty("partner-id")
     private String partnerId;
 
-    @JsonProperty("entry-id")
-    private String entryId;
+    @JsonProperty("entry-details")
+    private EntryConfig entryDetails;
 
     private final Map<String , Object> otherProperties = new HashMap<>();
 
@@ -72,7 +72,7 @@ public class TestConfig {
         return streamType;
     }
 
-    public boolean getDeleteFiles() {
+    public boolean isDeleteFiles() {
         return deleteFiles;
     }
 
@@ -88,7 +88,7 @@ public class TestConfig {
         return partnerId;
     }
 
-    public String getEntryId() {
-        return entryId;
+    public EntryConfig getEntryDetails() {
+        return entryDetails;
     }
 }

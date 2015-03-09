@@ -2,15 +2,22 @@ package tests;
 
 import actions.configurations.ConfigurationReader;
 import actions.configurations.EncoderConfig;
+import actions.configurations.EntryConfig;
 import actions.configurations.TestConfig;
 import actions.encoders.Encoder;
 import actions.encoders.ImageUtils;
+import actions.kaltura.CreateLiveEntry;
+import actions.kaltura.StartSession;
 import actions.streamdownloader.StreamDownloader;
 import actions.streamdownloader.StreamDownloaderFactory;
 import actions.streamdownloader.hls.TsFilesComparator;
 import actions.utils.GlobalContext;
 import actions.utils.ManifestUrlBuilder;
 import actions.utils.ProcessHandler;
+import actions.utils.StringUtils;
+import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.KalturaClient;
+import com.kaltura.client.types.KalturaLiveStreamEntry;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.Reporter;
@@ -35,10 +42,8 @@ public class MultiBitrateSyncTest {
     private String dest;
     private Encoder encoder;
     private StreamDownloader downloader;
-
-    private static String generateRandomSuffix() {
-        return new SimpleDateFormat("yyMMdd_HHmmss").format(Calendar.getInstance().getTime());
-    }
+    private KalturaClient client;
+    private KalturaLiveStreamEntry entry;
 
     private TestConfig getTestConfiguration(String configFileName) throws Exception {
         //read configuration file:
@@ -61,9 +66,28 @@ public class MultiBitrateSyncTest {
     public void initializeTest() throws Exception {
         config = getTestConfiguration("test-conf.json");    //TODO
 
+        //create client:
+        int partnerId = Integer.valueOf(config.getPartnerId());
+        //TODO, add admin secret to conf file
+        StartSession session = new StartSession(partnerId,"http://www.kaltura.com/","ec97d846f44e131988cd98ec8b488e0d");
+        client = session.execute();
+
+        //create live entry:
+        EntryConfig entryConf = config.getEntryDetails();
+        CreateLiveEntry liveEntry = new CreateLiveEntry(client, "auto-test", true, entryConf.isDvr(), entryConf.isRecording(), entryConf.getConversionProfileId());
+        entry = liveEntry.execute();
+
         //initialize encoder
         EncoderConfig encoderConfig = config.getEncoder();
-        encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),encoderConfig.getArgs());
+
+        //append streams to ffmpeg command. TODO, this is a workaround!
+        String ffmpegCommand = encoderConfig.getArgs();
+        for (int i = 1; i <= 3; i++) {
+            //TODO, primary/secondary
+            ffmpegCommand = ffmpegCommand.replace("{" + i + "}", entry.secondaryBroadcastingUrl + "/" + entry.id + "_" + i);
+        }
+        System.out.println("FFMpeg command: " + ffmpegCommand);
+        encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),ffmpegCommand);
 
         //initialize image utils
         ImageUtils.initializeImageUtils(config.getPathToFfmpeg());
@@ -78,6 +102,7 @@ public class MultiBitrateSyncTest {
 
     @Test
     public void streamVideoAndSleep() throws IOException {
+
         comment("About to stream video");
         encoder.startStream();
         comment("Sleeping");
@@ -89,9 +114,9 @@ public class MultiBitrateSyncTest {
     @Test(dependsOnMethods = "streamVideoAndSleep")
     public void downloadTsFiles() throws URISyntaxException {
         comment("Building manifest url");
-        URI uri = ManifestUrlBuilder.buildManifestUrl(config.getServiceUrl(), config.getEntryId(), config.getPartnerId());
+        URI uri = ManifestUrlBuilder.buildManifestUrl(config.getServiceUrl(), entry.id, config.getPartnerId());
 
-        dest = config.getDestinationFolder() + "/" + generateRandomSuffix();
+        dest = config.getDestinationFolder() + "/" + StringUtils.generateRandomSuffix();
         int duration = config.getTestDuration();
         comment("Manifest URL:" + uri);
         comment("Destination folder:" + dest);
@@ -114,11 +139,11 @@ public class MultiBitrateSyncTest {
     @Test(dependsOnMethods = "downloadTsFiles")
     public void compareFiles() {
         comment("Comparing files");
-        Assert.assertEquals(true,TsFilesComparator.compareFiles(new File(dest), (Integer) GlobalContext.getValue("NUM_STREAMS")));
+        Assert.assertEquals(true, TsFilesComparator.compareFiles(new File(dest), (Integer) GlobalContext.getValue("NUM_STREAMS")));
 
         //test passed, delete downloads
         try {
-            if (config.getDeleteFiles()) {
+            if (config.isDeleteFiles()) {
                 FileUtils.forceDelete(new File(dest));
             }
         } catch (IOException e) {
@@ -132,56 +157,4 @@ public class MultiBitrateSyncTest {
         comment("Shutting down ProcessHandler");
         ProcessHandler.shutdown();
     }
-
-
-
-//    @Test(enabled = false)
-//    public void testMultiBitrate() throws IOException, URISyntaxException {
-////        Reporter.log("------------------",true);
-////        Reporter.log(config.getEntryId(),true);
-//
-//
-//        comment("About to stream video");
-//        ProcessBuilder pb = ProcessHandler.createProcess((String) config.getOtherProperties().get("ffmpegStreamCommand"));
-//        Process p = ProcessHandler.start(pb);
-//
-//        comment("Sleeping..");
-//        sleep(120);
-//        comment("Done sleeping..");
-//
-//        comment("Building manifest url");
-//        URI uri = ManifestUrlBuilder.buildManifestUrl(config.getServiceUrl(), config.getEntryId(), config.getPartnerId());
-//
-//        String dest = config.getDestinationFolder() + "/" + generateRandomSuffix();
-//        int duration = config.getTestDuration();
-//        comment("Manifest URL:" + uri);
-//        comment("Destination folder:" + dest);
-//        comment("Test duration:" + duration);
-//
-//        HLSDownloader hlsDownloader = new HLSDownloader();
-//        try {
-//            hlsDownloader.downloadHLSFiles(uri.toString(), dest);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            Thread.sleep(duration * 1000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//
-//        comment("Shutting down downloader");
-//        hlsDownloader.shutdownDownloader();
-//
-//        comment("Stopping streaming");
-//        ProcessHandler.destroy(p);
-//        comment("Closing ProcessHandler");
-//
-//        comment("Comparing files");
-//        Map<Integer, MultiBitrateResults> results = new HashMap<>();
-//        TsFilesComparator.compareFiles(new File(dest), results);
-//
-//        System.out.println("Shutting down ProcessHandler");
-//        ProcessHandler.shutdown();
-//    }
 }

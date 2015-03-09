@@ -2,7 +2,6 @@
   "test-name": "test-1",
   "service-url": "@service-url@",
   "partner-id": "@partner-id@",
-  "entry-id": "@entry-id@",
   "stream-type": "hls",
   "path-to-ffmpeg": "c:/ffmpeg/bin/ffmpeg.exe",
   "encoder": {
@@ -13,5 +12,12 @@
   "test-duration": @test-duration@,
   "destination-folder": "@destination-folder@",
   "delete-files": @delete-files@
+  "entry-details": {
+    "entry-name": "auto_test",
+    "is-random": true,
+    "dvr": @dvr@,
+    "recording": @recording@,
+    "conversion-profile-id": 6297361
+  }
 }
 

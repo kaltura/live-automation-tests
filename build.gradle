@@ -85,7 +85,7 @@ task generateConfFile {
         //TODO solve resources
         def template = new File("$projectDir/src/main/resources/test-conf.json.template").getText('UTF-8');
 
-        def envVars = ['service-url','partner-id', 'entry-id', 'args', 'test-duration', 'destination-folder', 'delete-files']
+        def envVars = ['service-url','partner-id', 'entry-id', 'args', 'test-duration', 'destination-folder', 'delete-files', 'dvr', 'recording']
         envVars.each {v ->
             def val = System.env[v]
             val = val.replaceAll("\"","\\\\\"");    //escape qoutation marks
