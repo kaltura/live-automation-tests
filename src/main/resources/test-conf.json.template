@@ -1,22 +1,22 @@
 {
   "test-name": "test-1",
-  "service-url": "@service-url@",
-  "partner-id": "@partner-id@",
+  "service-url": "@SERVICE_URL@",
+  "partner-id": "@PARTNER_ID@",
   "stream-type": "hls",
   "path-to-ffmpeg": "c:/ffmpeg/bin/ffmpeg.exe",
   "encoder": {
     "name": "ffmpeg",
     "path-to-executable": "c:/ffmpeg/bin/ffmpeg.exe",
-    "args": "@args@"
+    "args": "@ARGS@"
   },
-  "test-duration": @test-duration@,
-  "destination-folder": "@destination-folder@",
-  "delete-files": @delete-files@,
+  "test-duration": @TEST_DURATION@,
+  "destination-folder": "@DESTINATION_FOLDER@",
+  "delete-files": @DELETE_FILES@,
   "entry-details": {
     "entry-name": "auto_test",
     "is-random": true,
-    "dvr": @dvr@,
-    "recording": @recording@,
+    "dvr": @DVR@,
+    "recording": @RECORDING@,
     "conversion-profile-id": 6297361
   }
 }
