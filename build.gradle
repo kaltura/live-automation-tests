@@ -88,8 +88,8 @@ task generateConfFile {
         def envVars = ['service-url','partner-id', 'entry-id', 'args', 'test-duration', 'destination-folder', 'delete-files', 'dvr', 'recording']
         envVars.each {v ->
             def val = System.env[v]
-            val = val.replaceAll("\"","\\\\\"");    //escape qoutation marks
             if (val != null){
+                val = val.replaceAll("\"","\\\\\"");    //escape qoutation marks
                 println "setting @$v@ to $val"
                 template = template.replaceAll("@$v@", val)
             }
