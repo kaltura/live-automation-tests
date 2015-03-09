@@ -11,7 +11,7 @@
   },
   "test-duration": @test-duration@,
   "destination-folder": "@destination-folder@",
-  "delete-files": @delete-files@
+  "delete-files": @delete-files@,
   "entry-details": {
     "entry-name": "auto_test",
     "is-random": true,
