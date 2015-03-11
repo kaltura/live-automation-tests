@@ -146,6 +146,7 @@ public class MultiBitrateSyncTest {
         //test passed, delete downloads
         try {
             if (config.isDeleteFiles()) {
+                comment("Deleting temporary files...");
                 FileUtils.forceDelete(new File(dest));
             }
         } catch (IOException e) {
