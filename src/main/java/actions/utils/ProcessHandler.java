@@ -1,5 +1,4 @@
 package actions.utils;
-
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -24,7 +23,7 @@ public class ProcessHandler {
     }
 
     public static ProcessBuilder createProcess(String command) {
-        log.debug("Create process with command: " + command);
+        log.info("Create process with command: " + command);
         String[] splitCommand = command.split(" ");
         ProcessBuilder pb = new ProcessBuilder(splitCommand);
         pb.redirectErrorStream(true);
@@ -43,7 +42,7 @@ public class ProcessHandler {
                 try {
                     while ((line = bri.readLine()) != null) {
 //                    while (bri.readLine() != null) {
-                        System.out.println(line);   //todo
+                        log.info(line);   //todo
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
