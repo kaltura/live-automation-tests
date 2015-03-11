@@ -3,7 +3,7 @@
   "service-url": "@SERVICE_URL@",
   "partner-id": "@PARTNER_ID@",
   "stream-type": "hls",
-  "path-to-ffmpeg": "c:/ffmpeg/bin/ffmpeg.exe",
+  "path-to-ffmpeg": "@FFMPEG_EXECUTABLE@",
   "encoder": {
     "name": "ffmpeg",
     "path-to-executable": "@FFMPEG_EXECUTABLE@",

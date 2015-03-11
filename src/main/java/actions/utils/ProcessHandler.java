@@ -39,11 +39,11 @@ public class ProcessHandler {
             @Override
             public void run() {
                 BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//                String line;
+                String line;
                 try {
-//                    while ((line = bri.readLine()) != null) {
-                    while (bri.readLine() != null) {
-//                        System.out.println(line);   //todo
+                    while ((line = bri.readLine()) != null) {
+//                    while (bri.readLine() != null) {
+                        System.out.println(line);   //todo
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -74,6 +74,15 @@ public class ProcessHandler {
             process.destroy();
         }
         return code;
+    }
+
+    public static boolean isRunning(Process process) {
+        try {
+            process.exitValue();
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     public static void destroy(Process process) {

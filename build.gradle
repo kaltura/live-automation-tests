@@ -11,6 +11,10 @@ repositories {
     }
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
+
 dependencies {
     compile 'com.kaltura:KalturaJavaClientLib:1.0'
     compile 'org.testng:testng:6.8.21'

@@ -38,7 +38,11 @@ public class Encoder {
     }
 
     public void startStream() throws IOException {
-        ProcessBuilder pb = ProcessHandler.createProcess(pathToEncoder + " " + args);
+        final String command = pathToEncoder + " " + args;
+        System.out.println("Invoking stream:");
+        System.out.println(command);
+
+        ProcessBuilder pb = ProcessHandler.createProcess(command);
         process = ProcessHandler.start(pb);
     }
 
