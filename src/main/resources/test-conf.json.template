@@ -6,7 +6,7 @@
   "path-to-ffmpeg": "c:/ffmpeg/bin/ffmpeg.exe",
   "encoder": {
     "name": "ffmpeg",
-    "path-to-executable": "c:/ffmpeg/bin/ffmpeg.exe",
+    "path-to-executable": "@FFMPEG_EXECUTABLE@",
     "args": "@ARGS@"
   },
   "test-duration": @TEST_DURATION@,
