@@ -124,16 +124,15 @@ public class TsFilesComparator {
             long diff = r.getMaxValue() - r.getMinValue();
             log.info("ts with id: " + r.getTsNumber() + ", diff: " + diff + ", min: " + r.getMinValue() + ", max: " + r.getMaxValue() + " . num comparisons: " + r.getNumComparisons());
 
+            boolean failOnMissingFiles = false;
+            String message = "missing ts files";
             if (r.getNumComparisons() < numStreams) {
-                //ignore edges
-                String message = "missing ts files";
-                if (i < 2 || i >= results.size() - 2) {
-                    log.warn(message);
-                }
-                else {
-                    log.error(message);
-                    success = false;
-                }
+                log.warn(message);
+            }
+            //fail the test on missing ts files only if there were missing file at the middle.
+            else if (failOnMissingFiles) {
+                log.error(message);
+                success = false;
             }
             if (diff > THRESHOLD_IN_MS) {
                 success = false;
