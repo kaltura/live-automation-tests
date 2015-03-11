@@ -76,6 +76,7 @@ public class MultiBitrateSyncTest {
         EntryConfig entryConf = config.getEntryDetails();
         CreateLiveEntry liveEntry = new CreateLiveEntry(client, "auto-test", true, entryConf.isDvr(), entryConf.isRecording(), entryConf.getConversionProfileId());
         entry = liveEntry.execute();
+        comment("created test with name: " + entry.name + ", id: " + entry.id);
 
         //initialize encoder
         EncoderConfig encoderConfig = config.getEncoder();
@@ -84,7 +85,7 @@ public class MultiBitrateSyncTest {
         String ffmpegCommand = encoderConfig.getArgs();
         for (int i = 1; i <= 3; i++) {
             //TODO, primary/secondary
-            ffmpegCommand = ffmpegCommand.replace("{" + i + "}", entry.secondaryBroadcastingUrl + "/" + entry.id + "_" + i);
+            ffmpegCommand = ffmpegCommand.replace("{" + i + "}", entry.primaryBroadcastingUrl + "/" + entry.id + "_" + i);
         }
         System.out.println("FFMpeg command: " + ffmpegCommand);
         encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),ffmpegCommand);
