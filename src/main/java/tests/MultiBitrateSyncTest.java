@@ -108,7 +108,8 @@ public class MultiBitrateSyncTest {
         encoder.startStream();
         comment("Sleeping");
         sleep(90);
-        comment("Done sleeping");
+        comment("Done sleeping. verifying encoder is running...");
+        Assert.assertTrue(encoder.isRunning());
 
     }
 

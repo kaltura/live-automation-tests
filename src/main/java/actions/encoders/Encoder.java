@@ -51,6 +51,10 @@ public class Encoder {
         ProcessHandler.destroy(process);
     }
 
+    public boolean isRunning() {
+        return ProcessHandler.isRunning(process);
+    }
+
     public String getName() {
         return name;
     }

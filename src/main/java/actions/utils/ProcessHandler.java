@@ -46,11 +46,10 @@ public class ProcessHandler {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-                try {
-                    bri.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } finally {
+                    try {
+                        bri.close();
+                    } catch (IOException e) {}
                 }
             }
         });
