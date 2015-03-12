@@ -17,7 +17,7 @@
     "is-random": true,
     "dvr": @DVR@,
     "recording": @RECORDING@,
-    "conversion-profile-id": 6297361
+    "conversion-profile-id": @CONVERSION_PROFILE_ID@
   }
 }
 

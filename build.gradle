@@ -89,7 +89,7 @@ task generateConfFile {
         //TODO solve resources
         def template = new File("$projectDir/src/main/resources/test-conf.json.template").getText('UTF-8');
 
-        def envVars = ['SERVICE_URL','PARTNER_ID', 'ARGS', 'TEST_DURATION', 'DESTINATION_FOLDER', 'DELETE_FILES', 'DVR', 'RECORDING', 'FFMPEG_EXECUTABLE']
+        def envVars = ['SERVICE_URL','PARTNER_ID', 'ARGS', 'TEST_DURATION', 'DESTINATION_FOLDER', 'DELETE_FILES', 'DVR', 'RECORDING', 'FFMPEG_EXECUTABLE','CONVERSION_PROFILE_ID']
         envVars.each {v ->
             def val = System.env[v]
             if (val != null){
