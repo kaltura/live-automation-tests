@@ -42,13 +42,8 @@ public class TsFilesComparator {
         ImageUtils.saveFirstFrame(tsFile, f);   //TODO, be consistent with File objects
 
         //take QR code:
-        try {
-            String text = QRCodeReader.readQRCode(f);
-            return convertToMs(text);
-        } catch (IOException | NotFoundException e) {
-            e.printStackTrace();
-        }
-        return 0;
+        String text = QRCodeReader.readQRCode(f);
+        return convertToMs(text);
     }
 
     private static Integer extractTsNumber(String tsName) {
@@ -98,10 +93,10 @@ public class TsFilesComparator {
             //delete file if exists
 //            File jpegFile = new File(jpegName); /*boolean isDeleted = */jpegFile.delete();  //TODO, be consistent and work only with File obj. what if false? DEADLOCK. solved with -y in ffmpeg
             try {
-                r.updateValues(getQRCodeFromFile(currentTsFile, jpegName));
-            } catch (IOException e) {
-                e.printStackTrace();
+                long code = getQRCodeFromFile(currentTsFile, jpegName);
+                r.updateValues(code);
             } catch (Exception e) {
+                log.error(jpegName + ". failed to get qr code. not updating");
                 e.printStackTrace();
             }
         }
@@ -124,16 +119,17 @@ public class TsFilesComparator {
             long diff = r.getMaxValue() - r.getMinValue();
             log.info("ts with id: " + r.getTsNumber() + ", diff: " + diff + ", min: " + r.getMinValue() + ", max: " + r.getMaxValue() + " . num comparisons: " + r.getNumComparisons());
 
+            //TODO, solve missing ts problem
             boolean failOnMissingFiles = false;
-            String message = "missing ts files";
-            if (r.getNumComparisons() < numStreams) {
-                log.warn(message);
-            }
+//            String message = "missing ts files";
+//            if (r.getNumComparisons() < numStreams) {
+//                log.warn(message);
+//            }
             //fail the test on missing ts files only if there were missing file at the middle.
-            else if (failOnMissingFiles) {
-                log.error(message);
-                success = false;
-            }
+//            else if (failOnMissingFiles) {
+//                log.error(message);
+//                success = false;
+//            }
             if (diff > THRESHOLD_IN_MS) {
                 success = false;
                 log.error("Ts files are not in sync");

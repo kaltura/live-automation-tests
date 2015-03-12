@@ -34,6 +34,7 @@ public class MultiBitrateResults {
     }
 
     public void updateValues(long val) {
+        System.out.println("ts: " + tsNumber + " val: " + val);
         numComparisons++;
         if (val > maxValue) {
             maxValue = val;
