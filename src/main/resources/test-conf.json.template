@@ -2,7 +2,7 @@
   "test-name": "test-1",
   "service-url": "@SERVICE_URL@",
   "partner-id": "@PARTNER_ID@",
-  "admin-secret": "@ADMIN_SECRET@"
+  "admin-secret": "@ADMIN_SECRET@",
   "stream-type": "hls",
   "path-to-ffmpeg": "@FFMPEG_EXECUTABLE@",
   "encoder": {
