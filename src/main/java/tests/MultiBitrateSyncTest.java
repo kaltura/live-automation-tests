@@ -68,8 +68,7 @@ public class MultiBitrateSyncTest {
 
         //create client:
         int partnerId = Integer.valueOf(config.getPartnerId());
-        //TODO, add admin secret to conf file
-        StartSession session = new StartSession(partnerId,"http://www.kaltura.com/","ec97d846f44e131988cd98ec8b488e0d");
+        StartSession session = new StartSession(partnerId,config.getServiceUrl(),config.getAdminSecret());
         client = session.execute();
 
         //create live entry:

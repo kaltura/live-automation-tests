@@ -14,6 +14,9 @@ public class TestConfig {
     @JsonProperty("test-name")
     private String testName;
 
+    @JsonProperty("admin-secret")
+    private String adminSecret;
+
     @JsonProperty("stream-type")
     private String streamType;
 
@@ -90,5 +93,9 @@ public class TestConfig {
 
     public EntryConfig getEntryDetails() {
         return entryDetails;
+    }
+
+    public String getAdminSecret() {
+        return adminSecret;
     }
 }
