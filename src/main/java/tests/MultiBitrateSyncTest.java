@@ -87,7 +87,7 @@ public class MultiBitrateSyncTest {
             ffmpegCommand = ffmpegCommand.replace("{" + i + "}", entry.primaryBroadcastingUrl + "/" + entry.id + "_" + i);
         }
 		//TODO workaround primary URL:
-		ffmpegCommand.replaceAll("ny-publish\\.kaltura\\.com", "208.185.60.207");
+		ffmpegCommand = ffmpegCommand.replaceAll("ny-publish\\.kaltura\\.com", "208.185.60.207");
 		System.out.println("FFMpeg command: " + ffmpegCommand);
         encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),ffmpegCommand);
 
