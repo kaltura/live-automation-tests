@@ -1,5 +1,7 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
+mainClassName = "tests.TsComparator"
 sourceCompatibility = 1.7
 version = '1.0'
 
@@ -17,6 +19,7 @@ task wrapper(type: Wrapper) {
 
 dependencies {
     compile 'com.kaltura:KalturaJavaClientLib:1.0'
+    compile 'org.im4java:im4java:1.4.0'
     compile 'org.testng:testng:6.8.21'
     compile 'com.google.zxing:core:3.1.0'
     compile 'com.google.zxing:javase:3.2.0'
@@ -107,10 +110,7 @@ task generateConfFile {
         def conf = new File("$projectDir/src/main/resources/test-conf.json")
         conf.write template
     }
-}
 
-task execMain(type: JavaExec) {
-    main = "Driver"
-    classpath = sourceSets.main.runtimeClasspath
+
 }
 
